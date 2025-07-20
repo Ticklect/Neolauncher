@@ -1,4 +1,4 @@
-appId: gg.hydralauncher.hydra
+appId: gg.neolauncher.neo
 productName: Hydra
 directories:
   buildResources: build
@@ -61,13 +61,13 @@ linux:
   maintainer: electronjs.org
   category: Game
   mimeTypes:
-    - x-scheme-handler/hydralauncher
+    - x-scheme-handler/neolauncher
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
   provider: github
-  owner: hydralauncher
+  owner: ticklect
   repo: hydra
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

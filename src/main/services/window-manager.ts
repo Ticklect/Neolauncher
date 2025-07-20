@@ -250,14 +250,14 @@ export class WindowManager {
       });
 
       authWindow.webContents.on("will-navigate", (_event, url) => {
-        if (url.startsWith("hydralauncher://auth")) {
+        if (url.startsWith("neolauncher://auth")) {
           authWindow.close();
 
           HydraApi.handleExternalAuth(url);
           return;
         }
 
-        if (url.startsWith("hydralauncher://update-account")) {
+        if (url.startsWith("neolauncher://update-account")) {
           authWindow.close();
 
           WindowManager.mainWindow?.webContents.send("on-account-updated");

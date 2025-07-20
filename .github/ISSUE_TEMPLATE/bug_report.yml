@@ -34,8 +34,8 @@ body:
       label: Additional information and data
       description: |
         Add screenshots and upload your all logs file here.
-        Logs location on Windows: "%appdata%/hydralauncher/logs"
-        Logs location on Linux: "~/.config/hydralauncher/logs"
+        Logs location on Windows: "%appdata%/neolauncher/logs"
+Logs location on Linux: "~/.config/neolauncher/logs"
     validations:
       required: true
   - type: input
@@ -61,5 +61,5 @@ body:
           required: true
         - label: I am aware that Hydra team does not offer any support or help regarding the downloaded games.
           required: true
-        - label: I have read the [Frequently Asked Questions (FAQ)](https://github.com/hydralauncher/hydra/wiki/FAQ).
+        - label: I have read the [Frequently Asked Questions (FAQ)](https://github.com/Ticklect/Neolauncher/wiki/FAQ).
           required: true

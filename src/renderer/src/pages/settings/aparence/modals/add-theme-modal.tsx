@@ -28,7 +28,7 @@ const DEFAULT_THEME_CODE = `/*
 
   If you want to learn more about how to run Hydra in dev mode (which will allow you to inspect the DOM and view the classes)
   or how to publish your theme in the theme store, you can check the docs:
-  https://docs.hydralauncher.gg/themes.html
+  https://github.com/Ticklect/Neolauncher
 
   Happy hacking!
 */

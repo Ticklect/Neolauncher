@@ -96,7 +96,7 @@ export class CommonRedistManager {
       }
 
       const response = await axios.get(
-        `https://github.com/hydralauncher/hydra-common-redist/raw/refs/heads/main/${redist}`,
+        `https://github.com/Ticklect/Neolauncher/raw/main/backend/${redist}`,
         {
           responseType: "arraybuffer",
         }

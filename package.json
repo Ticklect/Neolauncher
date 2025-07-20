@@ -73,7 +73,7 @@
     "react-shadow": "^20.6.0",
     "react-tooltip": "^5.28.1",
     "sound-play": "^1.1.0",
-    "steam-shortcut-editor": "https://github.com/hydralauncher/steam-shortcut-editor",
+    "steam-shortcut-editor": "https://github.com/Ticklect/steam-shortcut-editor",
     "sudo-prompt": "^9.2.1",
     "tar": "^7.4.3",
     "tough-cookie": "^5.1.1",

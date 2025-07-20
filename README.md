@@ -1,6 +1,6 @@
 <div align="center">
 
-[<img src="./resources/icon.png" width="144"/>](https://help.hydralauncher.gg)
+[<img src="./resources/icon.png" width="144"/>](https://github.com/Ticklect/Neolauncher)
 
   <h1 align="center">Hydra Launcher</h1>
 
@@ -8,8 +8,8 @@
     <strong>Hydra Launcher is an open-source gaming platform created to be the single tool that you need in order to manage your gaming library. Hydra is written in Node.js (Electron, React, Typescript) and Python.</strong>
   </p>
 
-[![build](https://img.shields.io/github/actions/workflow/status/hydralauncher/hydra/build.yml)](https://github.com/hydralauncher/hydra/actions)
-[![release](https://img.shields.io/github/package-json/v/hydralauncher/hydra)](https://github.com/hydralauncher/hydra/releases)
+[![build](https://img.shields.io/github/actions/workflow/status/Ticklect/Neolauncher/build.yml)](https://github.com/Ticklect/Neolauncher/actions)
+[![release](https://img.shields.io/github/package-json/v/Ticklect/Neolauncher)](https://github.com/Ticklect/Neolauncher/releases)
 
 ![Hydra Launcher Home Page](./docs/screenshot.png)
 
@@ -30,8 +30,8 @@ Please, refer to our Documentation pages: (link to your docs)
 
 ## Contributors
 
-<a href="https://github.com/hydralauncher/hydra/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=hydralauncher/hydra" />
+<a href="https://github.com/Ticklect/Neolauncher/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=Ticklect/Neolauncher" />
 </a>
 
 ## License

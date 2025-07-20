@@ -17,6 +17,8 @@ interface HydraApiOptions {
   needsAuth?: boolean;
   needsSubscription?: boolean;
   ifModifiedSince?: Date;
+  retryAttempts?: number;
+  retryDelay?: number;
 }
 
 interface HydraApiUserAuth {
@@ -26,8 +28,25 @@ interface HydraApiUserAuth {
   subscription: { expiresAt: Date | string | null } | null;
 }
 
+// Enhanced error types for better error handling
+export class NetworkError extends Error {
+  constructor(message: string, public readonly originalError?: any) {
+    super(message);
+    this.name = 'NetworkError';
+  }
+}
+
+export class BackendUnavailableError extends Error {
+  constructor(message: string = 'Backend service is currently unavailable') {
+    super(message);
+    this.name = 'BackendUnavailableError';
+  }
+}
+
 export class HydraApi {
   private static instance: AxiosInstance;
+  private static readonly DEFAULT_RETRY_ATTEMPTS = 3;
+  private static readonly DEFAULT_RETRY_DELAY = 1000; // 1 second
 
   private static readonly EXPIRATION_OFFSET_IN_MS = 1000 * 60 * 5; // 5 minutes
   private static readonly ADD_LOG_INTERCEPTOR = true;
@@ -50,6 +69,73 @@ export class HydraApi {
   private static hasActiveSubscription() {
     const expiresAt = new Date(this.userAuth.subscription?.expiresAt ?? 0);
     return expiresAt > new Date();
+  }
+
+  // Enhanced error handling with retry logic
+  private static async retryRequest<T>(
+    requestFn: () => Promise<T>,
+    retryAttempts: number = this.DEFAULT_RETRY_ATTEMPTS,
+    retryDelay: number = this.DEFAULT_RETRY_DELAY
+  ): Promise<T> {
+    let lastError: any;
+
+    for (let attempt = 0; attempt <= retryAttempts; attempt++) {
+      try {
+        return await requestFn();
+      } catch (error) {
+        lastError = error;
+        
+        // Don't retry on authentication errors
+        if (error instanceof UserNotLoggedInError || error instanceof SubscriptionRequiredError) {
+          throw error;
+        }
+
+        // Don't retry on 401 errors (handled by handleUnauthorizedError)
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          throw error;
+        }
+
+        // Check if it's a network error that we should retry
+        if (this.isRetryableError(error) && attempt < retryAttempts) {
+          logger.warn(`Request failed (attempt ${attempt + 1}/${retryAttempts + 1}):`, error.message);
+          await this.delay(retryDelay * Math.pow(2, attempt)); // Exponential backoff
+          continue;
+        }
+
+        // If we've exhausted retries or it's not retryable, throw the error
+        break;
+      }
+    }
+
+    // Enhanced error logging and categorization
+    if (lastError instanceof AxiosError) {
+      if (lastError.code === 'ECONNREFUSED' || lastError.code === 'ENOTFOUND') {
+        logger.error('Backend connection failed:', lastError.message);
+        throw new BackendUnavailableError(`Backend service unavailable: ${lastError.message}`);
+      }
+      
+      if (lastError.response?.status >= 500) {
+        logger.error('Server error:', lastError.response.status, lastError.response.data);
+        throw new NetworkError(`Server error: ${lastError.response.status}`, lastError);
+      }
+    }
+
+    logger.error('Request failed after all retry attempts:', lastError);
+    throw new NetworkError(`Request failed: ${lastError.message}`, lastError);
+  }
+
+  private static isRetryableError(error: any): boolean {
+    if (error instanceof AxiosError) {
+      // Retry on network errors and 5xx server errors
+      return !error.response || (error.response.status >= 500 && error.response.status < 600);
+    }
+    
+    // Retry on generic network errors
+    return error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT';
+  }
+
+  private static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   static async handleExternalAuth(uri: string) {
@@ -343,10 +429,14 @@ export class HydraApi {
       "Hydra-If-Modified-Since": options?.ifModifiedSince?.toUTCString(),
     };
 
-    return this.instance
-      .get<T>(url, { params, ...this.getAxiosConfig(), headers })
-      .then((response) => response.data)
-      .catch(this.handleUnauthorizedError);
+    return this.retryRequest(
+      () => this.instance
+        .get<T>(url, { params, ...this.getAxiosConfig(), headers })
+        .then((response) => response.data)
+        .catch(this.handleUnauthorizedError),
+      options?.retryAttempts,
+      options?.retryDelay
+    );
   }
 
   static async post<T = any>(
@@ -356,10 +446,14 @@ export class HydraApi {
   ) {
     await this.validateOptions(options);
 
-    return this.instance
-      .post<T>(url, data, this.getAxiosConfig())
-      .then((response) => response.data)
-      .catch(this.handleUnauthorizedError);
+    return this.retryRequest(
+      () => this.instance
+        .post<T>(url, data, this.getAxiosConfig())
+        .then((response) => response.data)
+        .catch(this.handleUnauthorizedError),
+      options?.retryAttempts,
+      options?.retryDelay
+    );
   }
 
   static async put<T = any>(
