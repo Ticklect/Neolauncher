@@ -10,6 +10,7 @@ import {
   WindowManager,
   Lock,
 } from "@main/services";
+import { CriticalErrorHandler } from "./services/critical-error-handler";
 import resources from "@locales";
 import { PythonRPC } from "./services/python-rpc";
 import { db, levelKeys } from "./level";
@@ -64,7 +65,8 @@ app.whenReady().then(async () => {
     return net.fetch(url.pathToFileURL(decodeURI(filePath)).toString());
   });
 
-  await loadState();
+  // Use critical error handler for robust startup
+  await CriticalErrorHandler.handleCriticalStartup();
 
   const language = await db
     .get<string, string>(levelKeys.language, {
@@ -151,15 +153,20 @@ app.on("window-all-closed", () => {
 let canAppBeClosed = false;
 
 app.on("before-quit", async (e) => {
-  await Lock.releaseLock();
-
   if (!canAppBeClosed) {
     e.preventDefault();
-    /* Disconnects libtorrent */
-    PythonRPC.kill();
-    await clearGamesPlaytime();
-    canAppBeClosed = true;
-    app.quit();
+    
+    try {
+      // Use critical error handler for graceful shutdown
+      await CriticalErrorHandler.handleGracefulShutdown();
+      await clearGamesPlaytime();
+      canAppBeClosed = true;
+      app.quit();
+    } catch (error) {
+      logger.error('Error during graceful shutdown:', error);
+      // Force quit if graceful shutdown fails
+      app.exit(1);
+    }
   }
 });
 
